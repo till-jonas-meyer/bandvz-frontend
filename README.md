@@ -73,3 +73,7 @@ export default defineConfig([
 ])
 
 ```
+
+
+## Generate API code
+* `npx openapi-ts`
