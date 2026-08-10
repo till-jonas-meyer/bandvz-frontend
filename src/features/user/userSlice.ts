@@ -6,7 +6,7 @@ type UserState = User | null;
 const initialState: UserState = null as UserState | null;
 
 const userSlice = createSlice({
-  name: 'userXX',
+  name: 'user',
   initialState,
   reducers: {
     setUser(state: UserState, action: PayloadAction<User>) {
