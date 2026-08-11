@@ -5,6 +5,7 @@ import App from './App.tsx';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
 import { client } from './api/generated/client.gen';
+import { BrowserRouter } from 'react-router-dom';
 
 client.setConfig({
   baseURL: import.meta.env.VITE_API_URL,
@@ -14,7 +15,9 @@ client.setConfig({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </Provider>
   </StrictMode>,
 )
