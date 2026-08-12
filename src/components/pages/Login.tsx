@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Center,
   Container,
@@ -14,13 +15,21 @@ import {
 import { useForm } from '@mantine/form';
 import {
   AtIcon,
-  PasswordIcon
+  PasswordIcon,
+  XCircleIcon
 } from '@phosphor-icons/react';
 import type { LoginParameters } from '../../api/generated/types.gen';
 import { login } from '../../api/generated/sdk.gen';
 import { notifications } from '@mantine/notifications';
+import { useAppDispatch } from '../../app/hooks';
+import { setUser } from '../../features/user/userSlice';
 
 export function Login() {
+
+  const navigate = useNavigate();
+
+  const dispatch = useAppDispatch();
+
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -50,18 +59,37 @@ export function Login() {
   const onSubmitLoginForm = async (event: LoginParameters) => {
 
     setSubmitDisabled(true);
+    setError(null);
 
     const loginResult = await login({ body: event });
 
     if (loginResult.status === 401) {
-      // When the status is 401, the message is always set
-      // See API app.ts - there is a handling for thrown HttpErrors
-      const message = (loginResult as any).data!.message;
+      setError(loginResult.error!.message);
+      setSubmitDisabled(false);
+      return;
+    }
+
+    if (loginResult.status === 500) {
+      setError(loginResult.error!.message);
+      setSubmitDisabled(false);
+      return;
+    }
+
+    // Too many requests (see rateLimiter in backend)
+    if (loginResult.status === 429) {
+      setError(loginResult.error!.message);
+      return;
+    }
+
+    if (loginResult.status === 200) {
+      dispatch(setUser(loginResult.data!));
+      navigate('/my-bands');
       notifications.show({
-        title: 'Login fehlgeschlagen',
-        message: message,
-        color: 'red'
+        title: 'Eingeloggt',
+        message: 'Du wurdest eingeloggt.',
+        color: 'green',
       });
+      return;
     }
   };
 
@@ -69,7 +97,7 @@ export function Login() {
     <React.Fragment>
       <Space h={160} />
       <Center>
-        <Container w={300}>
+        <Container w={{ base: 300, md: 480, lg: 480, xl: 480 }}>
           <Flex
             direction='column'
             justify='flex-start'
@@ -78,6 +106,9 @@ export function Login() {
             <Center>
               <Title order={2} mb='sm'>Login</Title>
             </Center>
+            {error !== null &&
+              <Alert variant='light' color='red' title='Fehler' mb='sm'>{error}</Alert>
+            }
             <form onSubmit={form.onSubmit(onSubmitLoginForm)}>
               <TextInput
                 w='100%'

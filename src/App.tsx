@@ -61,7 +61,6 @@ function App() {
       });
     };
     const getUser = async () => {
-      await loginUser();
       const profileResult = await profile();
       if (profileResult.status === 200 && profileResult.data) {
         dispatch(setUser(profileResult.data));
