@@ -19,7 +19,7 @@ import {
   XCircleIcon
 } from '@phosphor-icons/react';
 import type { LoginParameters } from '../../api/generated/types.gen';
-import { login } from '../../api/generated/sdk.gen';
+import { login } from '../../api/generated';
 import { notifications } from '@mantine/notifications';
 import { useAppDispatch } from '../../app/hooks';
 import { setUser } from '../../features/user/userSlice';
@@ -95,9 +95,9 @@ export function Login() {
 
   return (
     <React.Fragment>
-      <Space h={160} />
+      <Space h={{ base: 40, xs: 40, sm: 80, md: 80, lg: 160, xl: 200 }} />
       <Center>
-        <Container w={{ base: 300, md: 480, lg: 480, xl: 480 }}>
+        <Container w={{ base: 300, xs: 300, sm: 300, md: 360, lg: 360, xl: 360 }}>
           <Flex
             direction='column'
             justify='flex-start'

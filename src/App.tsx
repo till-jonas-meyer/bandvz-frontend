@@ -35,6 +35,7 @@ import {
 import { Notifications, notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import { Login } from './components/pages/Login';
+import { Register } from './components/pages/Register';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -150,6 +151,7 @@ function App() {
         <AppShell.Main>
           <Routes>
             <Route path='/user/login' element={<Login />} />
+            <Route path='/user/register' element={<Register />} />
           </Routes>
         </AppShell.Main>
       </AppShell>
