@@ -19,6 +19,7 @@ import {
 } from '@phosphor-icons/react';
 import type { RegisterParameters } from '../../api/generated';
 import { register } from '../../api/generated';
+import { MessagePage } from './MessagePage';
 
 export function Register() {
 
@@ -137,15 +138,15 @@ export function Register() {
       </Center>
     </React.Fragment>
   ) : (
-    <React.Fragment>
-      <Space h={{ base: 40, xs: 140 }} />
-      <Container w={{ base: 300, md: 640 }}>
-        <Flex direction='column' align='center' justify='flex-start'>
-          <Container mb='sm'><CheckCircleIcon color='green' size={64} /></Container>
-          <Title order={2} mb='sm'>Registrierung erfolgreich</Title>
-          <Text>Du wurdest erfolgreich registriert. Bitte prüfe dein E-Mail-Postfach für die E-Mail-Adresse {submittedEmail}. Du hast eine E-Mail mit einem Aktivierungslink erhalten. Falls du keine Mail hast, prüfe auch deinen Spam-Ordner.</Text>
-        </Flex>
-      </Container>
-    </React.Fragment>
+    <MessagePage
+      icon={<CheckCircleIcon color='green' size={64} />}
+      title='Registrierung erfolgreich'
+    >
+      <Text>
+        Du wurdest erfolgreich registriert. Bitte prüfe dein E-Mail-Postfach
+        für die E-Mail-Adresse {submittedEmail}. Du hast eine E-Mail mit einem
+        Aktivierungslink erhalten. Falls du keine Mail hast, prüfe auch deinen Spam-Ordner.
+      </Text>
+    </MessagePage>
   )
 }

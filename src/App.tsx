@@ -24,6 +24,7 @@ import {
   UserPlusIcon,
   UsersFourIcon,
   UsersThreeIcon,
+  LockKeyIcon
 } from '@phosphor-icons/react';
 import {
   BrowserRouter,
@@ -36,6 +37,9 @@ import { Notifications, notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import { Login } from './components/pages/Login';
 import { Register } from './components/pages/Register';
+import { Activate } from './components/pages/Activate';
+import { ResetPassword } from './components/pages/ResetPassword';
+import { ChangePassword } from './components/pages/ChangePassword';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -135,6 +139,7 @@ function App() {
                 ) : (
                   <React.Fragment>
                     <Menu.Item leftSection={<SignInIcon size={18} />} component={Link} to='/user/login' >Login</Menu.Item>
+                    <Menu.Item leftSection={<LockKeyIcon size={18} />} component={Link} to='/user/reset-password'>Passwort vergessen</Menu.Item>
                     <Menu.Item leftSection={<UserPlusIcon size={18} />} component={Link} to='/user/register'>Registrieren</Menu.Item>
                   </React.Fragment>
                 )}
@@ -152,6 +157,9 @@ function App() {
           <Routes>
             <Route path='/user/login' element={<Login />} />
             <Route path='/user/register' element={<Register />} />
+            <Route path='/user/activate/:activationCode' element={<Activate />} />
+            <Route path='/user/reset-password' element={<ResetPassword />} />
+            <Route path='/user/change-password/:resetCode' element={<ChangePassword />} />
           </Routes>
         </AppShell.Main>
       </AppShell>
