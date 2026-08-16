@@ -40,6 +40,7 @@ import { Register } from './components/pages/Register';
 import { Activate } from './components/pages/Activate';
 import { ResetPassword } from './components/pages/ResetPassword';
 import { ChangePassword } from './components/pages/ChangePassword';
+import { EditBand } from './components/pages/EditBand';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -160,6 +161,7 @@ function App() {
             <Route path='/user/activate/:activationCode' element={<Activate />} />
             <Route path='/user/reset-password' element={<ResetPassword />} />
             <Route path='/user/change-password/:resetCode' element={<ChangePassword />} />
+            <Route path='/bands/edit-band/:bandId' element={<EditBand />} />
           </Routes>
         </AppShell.Main>
       </AppShell>

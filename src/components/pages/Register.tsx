@@ -20,6 +20,7 @@ import {
 import type { RegisterParameters } from '../../api/generated';
 import { register } from '../../api/generated';
 import { MessagePage } from './MessagePage';
+import { isSecurePassword } from '../../helpers';
 
 export function Register() {
 
@@ -41,6 +42,9 @@ export function Register() {
       password: (value) => {
         if (value === '') {
           return 'Bitte gib ein Passwort ein.';
+        }
+        if (!isSecurePassword(value)) {
+          return 'Das Passwort muss mindestens 8 Zeichen lang sein und einen Großbuchstaben, einen Kleinbuchstaben und eine Ziffer enthalten.';
         }
         return null;
       },

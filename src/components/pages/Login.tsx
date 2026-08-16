@@ -16,7 +16,6 @@ import { useForm } from '@mantine/form';
 import {
   AtIcon,
   PasswordIcon,
-  XCircleIcon
 } from '@phosphor-icons/react';
 import type { LoginParameters } from '../../api/generated/types.gen';
 import { login } from '../../api/generated';
@@ -38,7 +37,7 @@ export function Login() {
     },
     validateInputOnBlur: true,
     validate: {
-      email: (value) => {
+      email: (value: string) => {
         if (!/^\S+@\S+$/.test(value) || value === '') {
           return 'Bitte gib eine gültige E-Mail-Adresse ein.';
         }
