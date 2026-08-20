@@ -9,7 +9,8 @@ import {
   TextInput,
   PasswordInput,
   Button,
-  Title
+  Title,
+  Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
@@ -21,6 +22,7 @@ import type { RegisterParameters } from '../../api/generated';
 import { register } from '../../api/generated';
 import { MessagePage } from './MessagePage';
 import { isSecurePassword } from '../../helpers';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export function Register() {
 
@@ -30,6 +32,7 @@ export function Register() {
       email: '',
       password: '',
       passwordRepeat: '',
+      turnstileToken: '',
     },
     validateInputOnBlur: true,
     validate: {
@@ -54,6 +57,12 @@ export function Register() {
         }
         return null;
       },
+      turnstileToken: (value) => {
+        if (value === '') {
+          return 'Bitte die Verifizierung durchführen.';
+        }
+        return null;
+      }
     }
   });
 
@@ -67,7 +76,7 @@ export function Register() {
     setSubmitDisabled(true);
     setError(null);
 
-    const { email, password, passwordRepeat } = event;
+    const { email, password, passwordRepeat, turnstileToken } = event;
 
     if (password !== passwordRepeat) {
       setError('Die beiden eingegebenen Passwörter stimmen nicht überein.');
@@ -78,7 +87,8 @@ export function Register() {
     const registerResult = await register({
       body: {
         email,
-        password
+        password,
+        turnstileToken
       }
     });
 
@@ -135,6 +145,14 @@ export function Register() {
                 key={form.key('passwordRepeat')}
                 {...form.getInputProps('passwordRepeat')}
               />
+              <Box mb='sm' ta='center'>
+                <Turnstile
+                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => { form.setFieldValue('turnstileToken', token); }}
+                  onExpire={() => { form.setFieldValue('turnstileToken', ''); }}
+                  onError={() => { form.setFieldValue('turnstileToken', ''); }}
+                />
+              </Box>
               <Button w='100%' type='submit' disabled={submitDisabled}>Registrieren</Button>
             </form>
           </Flex>
