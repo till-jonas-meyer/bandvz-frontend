@@ -92,7 +92,7 @@ export function Register() {
       }
     });
 
-    if (registerResult.status !== 200) {
+    if (registerResult.status !== 201) {
       setError(registerResult.error!.message);
       setSubmitDisabled(false);
     } else {
