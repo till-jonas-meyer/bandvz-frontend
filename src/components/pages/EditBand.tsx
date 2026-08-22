@@ -10,7 +10,10 @@ import {
   TextInput,
   Textarea,
   ActionIcon,
-  Text
+  Text,
+  Title,
+  Grid,
+  Pill
 } from '@mantine/core';
 import {
   PlusIcon,
@@ -35,7 +38,7 @@ type AddTrackFormValues = {
 type BandFormValues = {
   name: string;
   description: string;
-}
+};
 
 export function EditBand() {
 
@@ -49,6 +52,8 @@ export function EditBand() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
+  const [bandStatus, setBandStatus] = useState<'draft' | 'active'>('draft');
+
   const bandForm = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -59,7 +64,7 @@ export function EditBand() {
       name: (value) => value === '' ? 'Bitte einen Namen für die Band eingeben.' : null,
       description: (value) => value === '' ? 'Bitte eine Beschreibung für die Band eingeben.' : null,
     }
-  })
+  });
 
   const addTrackForm = useForm({
     mode: 'uncontrolled',
@@ -134,6 +139,12 @@ export function EditBand() {
     setEditing(true);
   }
 
+  const deleteIconClicked = () => {
+    setImageUrl(null);
+    setOriginalImageUrl(null);
+    setImageAction('delete');
+  }
+
   const onCropComplete = (_: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
@@ -199,99 +210,124 @@ export function EditBand() {
 
   return (
     <React.Fragment>
+      <Flex justify='flex-start' align='center' mb='lg'>
+        <Title order={2} mr='sm'>
+          Band bearbeiten
+        </Title>
+        {bandStatus === 'draft' && <Pill color='gray.5'>Entwurf</Pill>}
+      </Flex>
       <form onSubmit={bandForm.onSubmit(handleBandSubmit)}>
-        <Box
-          w={400}
-          h={400}
-          pos='relative'
-          onDragOver={event => event.preventDefault()}
-          onDrop={handleDrop}
-        >
-          {!editing ? (
-            <React.Fragment>
-              <Box pos='absolute' bottom={8} left={8}>
-                <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={changeIconClicked}>
-                  {imageUrl === null ? (
-                    <PlusIcon size={16} />
-                  ) : (
-                    <SwapIcon size={16} />
-                  )}
-                </ActionIcon>
-                {imageUrl !== null &&
-                  <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={editIconClicked}>
-                    <PencilSimpleIcon size={20} />
+        <Flex justify='flex-start' align='stretch' direction='row' wrap='wrap' gap='md'>
+          <Box
+            w={300}
+            h={300}
+            mb='sm'
+            bg='gray.1'
+            pos='relative'
+            onDragOver={event => event.preventDefault()}
+            onDrop={handleDrop}
+          >
+            {!editing ? (
+              <React.Fragment>
+                <Box pos='absolute' bottom={8} left={8}>
+                  <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={changeIconClicked}>
+                    {imageUrl === null ? (
+                      <PlusIcon size={16} />
+                    ) : (
+                      <SwapIcon size={16} />
+                    )}
                   </ActionIcon>
-                }
-                <ActionIcon w={32} h={32} radius='50%'>
-                  <TrashIcon size={20} />
-                </ActionIcon>
-              </Box>
-              {imageUrl !== null ? (
-                <img src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              ) : (
-                <Flex w='100%' h='100%' align='center' justify='center'>
-                  <ImageIcon size={400} color='#999' />
-                </Flex>
-              )}
-            </React.Fragment>
-          ) : (
-            <React.Fragment>
-              <Cropper
-                image={originalImageUrl!}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-              />
-              <Box pos='absolute' bottom={8} right={8}>
-                <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={abortCrop}>
-                  <XIcon size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  w={32}
-                  h={32}
-                  radius='50%'
-                  mr={4}
-                  onClick={handleCropSave}
-                  disabled={croppedAreaPixels === null}
-                >
-                  <CheckIcon size={20} />
-                </ActionIcon>
-              </Box>
-              <Box pos='absolute' bottom={8} left={8} bg='rgba(255, 255, 255, 0.8)' p={6} style={{ borderRadius: 8 }}>
-                <Flex justify='flex-start' align='center' direction='column'>
-                  <Box
-                    p={4}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setZoom(zoom + 0.1)}
+                  {imageUrl !== null &&
+                    <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={editIconClicked}>
+                      <PencilSimpleIcon size={20} />
+                    </ActionIcon>
+                  }
+                  {imageUrl !== null &&
+                    <ActionIcon w={32} h={32} radius='50%' onClick={deleteIconClicked}>
+                      <TrashIcon size={20} />
+                    </ActionIcon>
+                  }
+                </Box>
+                {imageUrl !== null ? (
+                  <img src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                ) : (
+                  <Flex w='100%' h='100%' align='center' justify='center'>
+                    <ImageIcon size={250} color='#999' />
+                  </Flex>
+                )}
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <Cropper
+                  image={originalImageUrl!}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+                <Box pos='absolute' bottom={8} right={8}>
+                  <ActionIcon w={32} h={32} radius='50%' mr={4} onClick={abortCrop}>
+                    <XIcon size={16} />
+                  </ActionIcon>
+                  <ActionIcon
+                    w={32}
+                    h={32}
+                    radius='50%'
+                    mr={4}
+                    onClick={handleCropSave}
+                    disabled={croppedAreaPixels === null}
                   >
-                    <PlusIcon size={16} />
-                  </Box>
-                  <Box
-                    p={4}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => zoom > 1 ? setZoom(zoom - 0.1) : null}
-                  >
-                    <MinusIcon size={16} />
-                  </Box>
-                </Flex>
-              </Box>
-            </React.Fragment>
-          )}
-        </Box>
-        <TextInput
-          mb='sm'
-          label='Name der Band'
-          placeholder='Name der Band eingeben'
-          {...bandForm.getInputProps('name')}
-        />
-        <Textarea
-          label='Beschreibung der Band'
-          placeholder='Bitte eine Beschreibung der Band eingeben'
-          {...bandForm.getInputProps('name')}
-        />
+                    <CheckIcon size={20} />
+                  </ActionIcon>
+                </Box>
+                <Box pos='absolute' bottom={8} left={8} bg='rgba(255, 255, 255, 0.8)' p={6} style={{ borderRadius: 8 }}>
+                  <Flex justify='flex-start' align='center' direction='column'>
+                    <Box
+                      p={4}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setZoom(zoom + 0.1)}
+                    >
+                      <PlusIcon size={16} />
+                    </Box>
+                    <Box
+                      p={4}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => zoom > 1 ? setZoom(zoom - 0.1) : null}
+                    >
+                      <MinusIcon size={16} />
+                    </Box>
+                  </Flex>
+                </Box>
+              </React.Fragment>
+            )}
+          </Box>
+          <Flex
+            justify='flex-start'
+            align='stretch'
+            direction='column'
+            miw={{ base: 0, sm: 400 }}
+            maw={400}
+            style={{ flexGrow: 1 }}
+          >
+            <TextInput
+              mb='sm'
+              label='Name der Band'
+              placeholder='Name der Band eingeben'
+              key={bandForm.key('name')}
+              {...bandForm.getInputProps('name')}
+            />
+            <Textarea
+              label='Beschreibung der Band'
+              placeholder='Bitte eine Beschreibung der Band eingeben'
+              autosize
+              minRows={3}
+              key={bandForm.key('description')}
+              {...bandForm.getInputProps('description')}
+            />
+          </Flex>
+        </Flex>
       </form>
       <input
         ref={imgInputRef}
