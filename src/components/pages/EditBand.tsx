@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { SortableTable } from '../organisms/SortableTable';
+import { SortableTrackTable } from '../molecules/SortableTrackTable';
 import {
   Modal,
   Box,
@@ -23,17 +23,14 @@ import {
   TrashIcon,
   CheckIcon,
   XIcon,
-  MinusIcon
+  MinusIcon,
+  FloppyDiskIcon
 } from '@phosphor-icons/react';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-
-type AddTrackFormValues = {
-  title: string;
-  file: File | null;
-};
+import { useParams } from 'react-router-dom';
 
 type BandFormValues = {
   name: string;
@@ -41,6 +38,8 @@ type BandFormValues = {
 };
 
 export function EditBand() {
+
+  const { bandId } = useParams();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
@@ -65,27 +64,6 @@ export function EditBand() {
       description: (value) => value === '' ? 'Bitte eine Beschreibung für die Band eingeben.' : null,
     }
   });
-
-  const addTrackForm = useForm({
-    mode: 'uncontrolled',
-    initialValues: {
-      title: '',
-      file: null
-    },
-    validate: {
-      title: (value) => value === '' ? 'Bitte einen Titel eingeben.' : null,
-      file: value => value === null ? 'Bitte eine Datei auswählen.' : null
-    }
-  });
-
-  const [addTrackModalOpened, {
-    open: openAddTrackModal,
-    close: closeAddTrackModal
-  }] = useDisclosure();
-
-  const handleAddTrackSubmit = (event: AddTrackFormValues) => {
-    console.log(event);
-  }
 
   const handleBandSubmit = (event: BandFormValues) => {
     console.log(event);
@@ -136,6 +114,9 @@ export function EditBand() {
   };
 
   const editIconClicked = () => {
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
     setEditing(true);
   }
 
@@ -216,12 +197,12 @@ export function EditBand() {
         </Title>
         {bandStatus === 'draft' && <Pill color='gray.5'>Entwurf</Pill>}
       </Flex>
-      <form onSubmit={bandForm.onSubmit(handleBandSubmit)}>
-        <Flex justify='flex-start' align='stretch' direction='row' wrap='wrap' gap='md'>
+      <Grid maw={960} gap='sm'>
+        <Grid.Col span={{ base: 12, md: 6 }}>
           <Box
-            w={300}
-            h={300}
-            mb='sm'
+            w={{ base: 200, lg: 300 }}
+            style={{ aspectRatio: '1 / 1' }}
+            mb='lg'
             bg='gray.1'
             pos='relative'
             onDragOver={event => event.preventDefault()}
@@ -249,10 +230,10 @@ export function EditBand() {
                   }
                 </Box>
                 {imageUrl !== null ? (
-                  <img src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                 ) : (
                   <Flex w='100%' h='100%' align='center' justify='center'>
-                    <ImageIcon size={250} color='#999' />
+                    <ImageIcon size={200} color='#999' />
                   </Flex>
                 )}
               </React.Fragment>
@@ -303,14 +284,8 @@ export function EditBand() {
               </React.Fragment>
             )}
           </Box>
-          <Flex
-            justify='flex-start'
-            align='stretch'
-            direction='column'
-            miw={{ base: 0, sm: 400 }}
-            maw={400}
-            style={{ flexGrow: 1 }}
-          >
+          <form onSubmit={bandForm.onSubmit(handleBandSubmit)}>
+            <Title order={3} mb='sm'>Banddetails</Title>
             <TextInput
               mb='sm'
               label='Name der Band'
@@ -326,9 +301,35 @@ export function EditBand() {
               key={bandForm.key('description')}
               {...bandForm.getInputProps('description')}
             />
-          </Flex>
-        </Flex>
-      </form>
+          </form>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Title order={3} mb='sm'>Tracklist</Title>
+          <SortableTrackTable bandId={Number(bandId)} />
+        </Grid.Col>
+      </Grid>
+      <Flex
+        maw={960}
+        justify={{ base: 'flex-start', xs: 'flex-end' }}
+        align='center'
+        wrap='wrap'
+        style={{ borderTop: '2px solid #eee' }}
+        pt='sm'
+        mt='lg'
+        gap='sm'
+      >
+        <Button
+          leftSection={<TrashIcon size={16} />}
+          color='red'
+        >
+          {bandStatus === 'draft' ? 'Verwerfen' : 'Löschen'}
+        </Button>
+        <Button
+          leftSection={<FloppyDiskIcon size={16} />}
+        >
+          Speichern
+        </Button>
+      </Flex>
       <input
         ref={imgInputRef}
         type='file'
@@ -336,39 +337,6 @@ export function EditBand() {
         onChange={changeImage}
         style={{ display: 'none' }}
       />
-      <Box mb='sm'>
-        <SortableTable />
-      </Box>
-      <Button
-        onClick={openAddTrackModal}
-        leftSection={<PlusIcon size={16} />}
-      >
-        Track hinzufügen
-      </Button>
-      <Modal
-        opened={addTrackModalOpened}
-        onClose={closeAddTrackModal}
-        title='Track hinzufügen'
-      >
-        <form onSubmit={addTrackForm.onSubmit(handleAddTrackSubmit)} style={{ width: '100%' }}>
-          <TextInput
-            mb='sm'
-            label='Titel'
-            placeholder='Titel für Track eingeben'
-            {...addTrackForm.getInputProps('title')}
-          />
-          <FileInput
-            label='Datei'
-            placeholder='Datei auswählen'
-            {...addTrackForm.getInputProps('file')}
-          />
-          <Flex direction='row' align='center' justify='flex-end' mt='xl'>
-            <Button variant='default' onClick={closeAddTrackModal}>Abbrechen</Button>
-            <Space w='sm' />
-            <Button type='submit'>Speichern</Button>
-          </Flex>
-        </form>
-      </Modal>
     </React.Fragment>
   )
 }
