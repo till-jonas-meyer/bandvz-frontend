@@ -12,7 +12,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Table } from '@mantine/core';
-import { DotsSixVerticalIcon } from '@phosphor-icons/react';
 import {
   Box,
   Button,
@@ -23,11 +22,27 @@ import {
   Space,
   Loader,
   Progress,
+  Menu,
+  ActionIcon,
+  Text,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { PlusIcon } from '@phosphor-icons/react';
-import { getTracksForBand, reorder } from '../../api/generated';
+import {
+  DotsSixVerticalIcon,
+  PlusIcon,
+  XIcon,
+  FloppyDiskIcon,
+  DotsThreeIcon,
+  TrashIcon,
+  PencilIcon,
+  CheckIcon,
+} from '@phosphor-icons/react';
+import {
+  getTracksForBand,
+  reorder,
+  deleteTrack as apiDeleteTrack
+} from '../../api/generated';
 import { notifications } from '@mantine/notifications';
 import { Subject, concatMap, finalize, from, tap } from 'rxjs';
 import axios from 'axios';
@@ -46,7 +61,12 @@ type Item = {
   title: string;
 };
 
-function SortableRow({ item }: { item: Item }) {
+type SortableRowProps = {
+  item: Item,
+  deleteTrack: (trackUuid: string) => void
+}
+
+function SortableRow({ item, deleteTrack }: SortableRowProps) {
   const {
     attributes,
     listeners,
@@ -79,11 +99,37 @@ function SortableRow({ item }: { item: Item }) {
       </Table.Td>
 
       <Table.Td>{item.title}</Table.Td>
+      <Table.Td w='1%'>
+        <Menu shadow='md' width={160}>
+          <Menu.Target>
+            <ActionIcon
+              size='md'
+              variant='transparent'
+              color='primary'
+            >
+              <DotsThreeIcon size={16} weight='bold' />
+            </ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<TrashIcon size={16} />}
+              onClick={() => deleteTrack(item.uuid)}
+            >
+              Löschen
+            </Menu.Item>
+            <Menu.Item leftSection={<PencilIcon size={16} />}>
+              Bearbeiten
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </Table.Td>
     </Table.Tr>
   );
 }
 
 export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
+
+  const [trackUuidToDelete, setTrackUuidToDelete] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController>(null);
 
@@ -134,6 +180,11 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
     close: closeAddTrackModal
   }] = useDisclosure();
 
+  const [deleteConfirmDialogOpened, {
+    open: openDeleteConfirmDialog,
+    close: closeDeleteConfirmDialog
+  }] = useDisclosure();
+
   const handleAddTrackSubmit = async (event: AddTrackFormValues) => {
 
     abortControllerRef.current = new AbortController();
@@ -149,10 +200,8 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
 
     setUploadingTrack(true);
 
-    let uploadResult;
-
     try {
-      uploadResult = await axios.post(
+      const uploadResult = await axios.post(
         `${import.meta.env.VITE_API_URL}/track/add`, formData, {
         signal: abortControllerRef.current.signal,
         withCredentials: true,
@@ -163,6 +212,19 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
           }
         },
       });
+
+      if (!uploadResult.data) {
+        throw new Error('Fehler in der Antwort');
+      }
+
+      const newItems = structuredClone(items);
+
+      newItems.push({
+        uuid: uploadResult.data.uuid,
+        title: event.title,
+      });
+
+      setItems(newItems);
 
       setAddTrackFormSubmitDisabled(false);
       setUploadingTrack(false);
@@ -179,6 +241,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
 
       setAddTrackFormSubmitDisabled(false);
       setUploadingTrack(false);
+      setTrackUploadProgress(0);
     }
   }
 
@@ -232,6 +295,32 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
     closeAddTrackModal();
   }
 
+  const initAddTrackModal = () => {
+    addTrackForm.reset();
+    setTrackUploadProgress(0);
+    setUploadingTrack(false);
+    setAddTrackFormSubmitDisabled(false);
+    openAddTrackModal();
+  };
+
+  const deleteTrack = (uuid: string) => {
+    setTrackUuidToDelete(uuid);
+    openDeleteConfirmDialog();
+  };
+
+  const deleteTrackConfirmed = () => {
+
+    closeDeleteConfirmDialog();
+
+    if (trackUuidToDelete) {
+      const newItems = items.filter((item) => item.uuid !== trackUuidToDelete);
+      setItems(newItems);
+      apiDeleteTrack({ path: { trackUuid: trackUuidToDelete } });
+    }
+
+    console.log(trackUuidToDelete);
+  };
+
   return (
     <React.Fragment>
       <DndContext
@@ -243,6 +332,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
             <Table.Tr>
               <Table.Th w={32} />
               <Table.Th>Titel</Table.Th>
+              <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
 
@@ -252,7 +342,11 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
               strategy={verticalListSortingStrategy}
             >
               {items.map((item) => (
-                <SortableRow key={item.uuid} item={item} />
+                <SortableRow
+                  key={item.uuid}
+                  item={item}
+                  deleteTrack={deleteTrack}
+                />
               ))}
             </SortableContext>
           </Table.Tbody>
@@ -261,10 +355,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
       <Flex justify='flex-end' align='center' gap='sm'>
         {reordering && <Loader size={16} mr='auto' />}
         <Button
-          onClick={() => {
-            addTrackForm.reset();
-            openAddTrackModal();
-          }}
+          onClick={initAddTrackModal}
           leftSection={<PlusIcon size={16} />}
         >
           Track hinzufügen
@@ -289,13 +380,46 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
           />
           <Flex direction='row' align='center' justify='flex-end' mt='xl'>
             {uploadingTrack && <Progress flex={1} value={trackUploadProgress} mr='md' />}
-            <Button variant='default' onClick={abortAddTrack}>Abbrechen</Button>
+            <Button
+              leftSection={<XIcon size={16} />}
+              variant='default'
+              onClick={abortAddTrack}
+            >
+              Abbrechen
+            </Button>
             <Space w='sm' />
-            <Button type='submit' disabled={addTrackFormSubmitDisabled}>Speichern</Button>
+            <Button
+              leftSection={<FloppyDiskIcon size={16} />}
+              type='submit'
+              disabled={addTrackFormSubmitDisabled}
+            >
+              Speichern
+            </Button>
           </Flex>
         </form>
       </Modal>
-
+      <Modal
+        opened={deleteConfirmDialogOpened}
+        onClose={closeDeleteConfirmDialog}
+        size='lg'
+      >
+        <Text>Möchten Sie die Track wirklich löschen?</Text>
+        <Flex justify='flex-end' align='center' mt='md' gap='sm'>
+          <Button
+            leftSection={<XIcon size={16} />}
+            onClick={closeDeleteConfirmDialog}
+            color='red'
+          >
+            Nein
+          </Button>
+          <Button
+            leftSection={<CheckIcon size={16} />}
+            onClick={deleteTrackConfirmed}
+          >
+            Ja
+          </Button>
+        </Flex>
+      </Modal>
     </React.Fragment>
   );
 }
