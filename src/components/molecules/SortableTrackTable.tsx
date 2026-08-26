@@ -25,8 +25,9 @@ import {
   Menu,
   ActionIcon,
   Text,
+  Checkbox,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
+import { useForm, isNotEmpty } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import {
   DotsSixVerticalIcon,
@@ -41,7 +42,8 @@ import {
 import {
   getTracksForBand,
   reorder,
-  deleteTrack as apiDeleteTrack
+  deleteTrack as apiDeleteTrack,
+  updateTrack,
 } from '../../api/generated';
 import { notifications } from '@mantine/notifications';
 import { Subject, concatMap, finalize, from, tap } from 'rxjs';
@@ -62,11 +64,16 @@ type Item = {
 };
 
 type SortableRowProps = {
-  item: Item,
-  deleteTrack: (trackUuid: string) => void
+  item: Item;
+  deleteTrack: (trackUuid: string) => void;
+  editTrack: (item: Item) => void;
 }
 
-function SortableRow({ item, deleteTrack }: SortableRowProps) {
+type EditTrackFormValues = {
+  title: string;
+};
+
+function SortableRow({ item, deleteTrack, editTrack }: SortableRowProps) {
   const {
     attributes,
     listeners,
@@ -117,7 +124,10 @@ function SortableRow({ item, deleteTrack }: SortableRowProps) {
             >
               Löschen
             </Menu.Item>
-            <Menu.Item leftSection={<PencilIcon size={16} />}>
+            <Menu.Item
+              leftSection={<PencilIcon size={16} />}
+              onClick={() => editTrack(item)}
+            >
               Bearbeiten
             </Menu.Item>
           </Menu.Dropdown>
@@ -128,6 +138,58 @@ function SortableRow({ item, deleteTrack }: SortableRowProps) {
 }
 
 export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
+
+  const [editTrackUuid, setEditTrackUuid] = useState<string | null>(null);
+
+  const [editTrackModalOpened, {
+    open: openEditTrackModal,
+    close: closeEditTrackModal
+  }] = useDisclosure();
+
+  const editTrackForm = useForm({
+    mode: 'uncontrolled',
+    initialValues: {
+      title: '',
+    },
+    validate: {
+      title: (value) => value === '' ? 'Bitte einen Titel eingeben.' : null
+    }
+  });
+
+  const editTrack = (item: Item) => {
+    setEditTrackUuid(item.uuid);
+    editTrackForm.setFieldValue('title', item.title);
+    openEditTrackModal();
+  };
+
+  const handleEditTrackSubmit = (event: EditTrackFormValues) => {
+
+    if (editTrackUuid === null) {
+      return;
+    }
+
+    setPendingOrderRequests((value) => value + 1);
+
+    updateTrack({
+      path: { trackUuid: editTrackUuid },
+      body: { title: event.title }
+    }).then(() => setPendingOrderRequests((value) => value - 1))
+
+    const newItems = items.map((item) => {
+      if (item.uuid === editTrackUuid) {
+        return {
+          title: event.title,
+          uuid: item.uuid,
+        }
+      }
+      return item;
+    });
+
+    setItems(newItems);
+
+    closeEditTrackModal();
+
+  }
 
   const [trackUuidToDelete, setTrackUuidToDelete] = useState<string | null>(null);
 
@@ -141,6 +203,8 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
   const reordering = pendingReorderRequests > 0;
 
   const [addTrackFormSubmitDisabled, setAddTrackFormSubmitDisabled] = useState(false);
+
+  const [addTrackButtonDisabled, setAddTrackButtonDisabled] = useState(true);
 
   useEffect(() => {
 
@@ -167,11 +231,13 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
     mode: 'uncontrolled',
     initialValues: {
       title: '',
-      file: null
+      file: null,
+      compliance: false
     },
     validate: {
       title: (value) => value === '' ? 'Bitte einen Titel eingeben.' : null,
-      file: value => value === null ? 'Bitte eine Datei auswählen.' : null
+      file: (value) => value === null ? 'Bitte eine Datei auswählen.' : null,
+      compliance: isNotEmpty('Du musst die Bendingungen akzeptieren'),
     }
   });
 
@@ -251,12 +317,13 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
 
     if (trackList.status === 200 && trackList.data) {
       setItems(trackList.data);
+      setAddTrackButtonDisabled(false);
       return;
     }
 
     notifications.show({
       title: 'Fehler',
-      message: 'Es ist ein Fehler beim Laden einer Tracklist aufgetreten.',
+      message: 'Es ist ein Fehler beim Laden der Tracklist aufgetreten.',
       color: 'red',
     });
 
@@ -346,6 +413,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
                   key={item.uuid}
                   item={item}
                   deleteTrack={deleteTrack}
+                  editTrack={editTrack}
                 />
               ))}
             </SortableContext>
@@ -357,6 +425,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
         <Button
           onClick={initAddTrackModal}
           leftSection={<PlusIcon size={16} />}
+          disabled={addTrackButtonDisabled}
         >
           Track hinzufügen
         </Button>
@@ -371,12 +440,20 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
             mb='sm'
             label='Titel'
             placeholder='Titel für Track eingeben'
+            key={addTrackForm.key('title')}
             {...addTrackForm.getInputProps('title')}
           />
           <FileInput
+            mb='sm'
             label='Datei'
             placeholder='Datei auswählen'
+            key={addTrackForm.key('file')}
             {...addTrackForm.getInputProps('file')}
+          />
+          <Checkbox
+            label='Ich versichere, dass ich die Rechte an dem hochgeladenen Musikstück habe.'
+            key={addTrackForm.key('compliance')}
+            {...addTrackForm.getInputProps('compliance')}
           />
           <Flex direction='row' align='center' justify='flex-end' mt='xl'>
             {uploadingTrack && <Progress flex={1} value={trackUploadProgress} mr='md' />}
@@ -392,6 +469,36 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
               leftSection={<FloppyDiskIcon size={16} />}
               type='submit'
               disabled={addTrackFormSubmitDisabled}
+            >
+              Speichern
+            </Button>
+          </Flex>
+        </form>
+      </Modal>
+      <Modal
+        opened={editTrackModalOpened}
+        onClose={closeEditTrackModal}
+        title='Track bearbeiten'
+      >
+        <form onSubmit={editTrackForm.onSubmit(handleEditTrackSubmit)} style={{ width: '100%' }}>
+          <TextInput
+            label='Titel'
+            placeholder='Titel für Track eingeben'
+            key={editTrackForm.key('title')}
+            {...editTrackForm.getInputProps('title')}
+          />
+          <Flex direction='row' align='center' justify='flex-end' mt='xl'>
+            <Button
+              leftSection={<XIcon size={16} />}
+              variant='default'
+              onClick={closeEditTrackModal}
+            >
+              Abbrechen
+            </Button>
+            <Space w='sm' />
+            <Button
+              leftSection={<FloppyDiskIcon size={16} />}
+              type='submit'
             >
               Speichern
             </Button>
