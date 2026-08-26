@@ -13,7 +13,8 @@ import {
   Text,
   Title,
   Grid,
-  Pill
+  Pill,
+  Progress
 } from '@mantine/core';
 import {
   PlusIcon,
@@ -24,7 +25,8 @@ import {
   CheckIcon,
   XIcon,
   MinusIcon,
-  FloppyDiskIcon
+  FloppyDiskIcon,
+  XCircleIcon,
 } from '@phosphor-icons/react';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
@@ -316,19 +318,41 @@ export function EditBand() {
         style={{ borderTop: '2px solid #eee' }}
         pt='sm'
         mt='lg'
-        gap='sm'
+        gap='md'
       >
-        <Button
-          leftSection={<TrashIcon size={16} />}
-          color='red'
+        <Flex
+          style={{ flexGrow: 1, height: 20 }}
+          miw={240}
+          mr='auto'
+          align='center'
+          gap='sm'
         >
-          {bandStatus === 'draft' ? 'Verwerfen' : 'Löschen'}
-        </Button>
-        <Button
-          leftSection={<FloppyDiskIcon size={16} />}
-        >
-          Speichern
-        </Button>
+          <Box style={{ flexGrow: 1 }}>
+            <Progress value={66} />
+          </Box>
+          <ActionIcon color='red' size='md' style={{ borderRadius: '50%' }}>
+            <XIcon size={22} />
+          </ActionIcon>
+        </Flex>
+        <Flex wrap='wrap' gap='sm'>
+          <Button
+            leftSection={<XIcon size={16} />}
+            color='gray.5'
+          >
+            Abbrechen
+          </Button>
+          <Button
+            leftSection={<TrashIcon size={16} />}
+            color='red'
+          >
+            {bandStatus === 'draft' ? 'Verwerfen' : 'Löschen'}
+          </Button>
+          <Button
+            leftSection={<FloppyDiskIcon size={16} />}
+          >
+            Speichern
+          </Button>
+        </Flex>
       </Flex>
       <input
         ref={imgInputRef}

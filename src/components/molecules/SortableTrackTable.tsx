@@ -420,7 +420,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
           </Table.Tbody>
         </Table>
       </DndContext>
-      <Flex justify='flex-end' align='center' gap='sm'>
+      <Flex justify='flex-end' align='center' gap='sm' mt='sm'>
         {reordering && <Loader size={16} mr='auto' />}
         <Button
           onClick={initAddTrackModal}
