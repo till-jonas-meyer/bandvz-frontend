@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SortableTrackTable } from '../molecules/SortableTrackTable';
 import {
   Modal,
@@ -32,20 +32,75 @@ import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getBand, deleteBand, updateBand } from '../../api/generated';
+import { notifications } from '@mantine/notifications';
+import axios from 'axios';
 
 type BandFormValues = {
   name: string;
   description: string;
 };
 
+function getBandImgFilename(imgUuid: string, imgExt: string | null) {
+  let filename = `/storage/bandimgs/${imgUuid}`;
+  if (imgExt) {
+    filename += `.${imgExt}`;
+  }
+  return filename;
+}
+
 export function EditBand() {
 
   const { bandId } = useParams();
 
+  if (!bandId) {
+    return <div>BandId not set</div>
+  }
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadBand = async () => {
+
+      const getBandResult = await getBand({ path: { bandId } });
+
+      if (getBandResult.status !== 200 || !getBandResult.data) {
+        notifications.show({
+          title: 'Fehler',
+          message: 'Es ist ein Fehler beim Laden der Banddaten aufgetreten.',
+          color: 'red'
+        });
+        return;
+      }
+
+      const bandData = getBandResult.data;
+
+      if (bandData.imgUuid) {
+        const imgUrl = `${import.meta.env.VITE_API_URL}${getBandImgFilename(bandData.imgUuid, bandData.imgExt)}`;
+
+        setImageUrl(imgUrl);
+        setOriginalImageUrl(imgUrl);
+        setImageExt(bandData.imgExt);
+      }
+
+      setBandStatus(bandData.status);
+      bandForm.setFieldValue('name', bandData.name);
+      bandForm.setFieldValue('description', bandData.description);
+
+      setSubmitButtonDisabled(false);
+    };
+    loadBand();
+  }, []);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [submitButtonDisabled, setSubmitButtonDisabled] = useState(true);
+  const [deleteButtonDisabled, setDeleteButtonDisabled] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageExt, setImageExt] = useState<string | null>(null);
   const [imageAction, setImageAction] = useState<'keep' | 'replace' | 'delete'>('keep');
   const imgInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
@@ -54,6 +109,15 @@ export function EditBand() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [bandStatus, setBandStatus] = useState<'draft' | 'active'>('draft');
+
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgUploadProgress, setImgUploadProgress] = useState(0);
+
+  const [deleteConfirmDialogOpened, {
+    open: openDeleteConfirmDialog,
+    close: closeDeleteConfirmDialog
+  }] = useDisclosure();
+
 
   const bandForm = useForm({
     mode: 'uncontrolled',
@@ -67,8 +131,99 @@ export function EditBand() {
     }
   });
 
-  const handleBandSubmit = (event: BandFormValues) => {
-    console.log(event);
+  const handleBandSubmit = async (event: BandFormValues) => {
+
+    setSubmitButtonDisabled(true);
+
+    if (['keep', 'delete'].includes(imageAction)) {
+
+      const updateResult = await updateBand({
+        path: { bandId },
+        body: {
+          name: event.name,
+          description: event.description,
+          imageAction: imageAction
+        }
+      });
+
+      if (updateResult.status !== 200) {
+
+        notifications.show({
+          title: 'Fehler',
+          message: 'Es ist ein Fehler beim Speichern der Band aufgetreten.',
+          color: 'red'
+        });
+
+        setDeleteButtonDisabled(false);
+
+        return;
+      }
+    }
+
+    if (imageAction === 'replace') {
+
+      const response = await fetch(imageUrl!);
+      const blob = await response.blob();
+
+      let filename = 'uploaded';
+      if (imageExt) {
+        filename += `.${imageExt}`;
+      }
+
+      const imgFile = new File([blob], filename, { type: blob.type });
+
+      abortControllerRef.current = new AbortController();
+
+      const formData = new FormData();
+      formData.append('bandImgFile', imgFile);
+      formData.append('name', event.name);
+      formData.append('description', event.description);
+      formData.append('imageAction', imageAction);
+
+      setImgUploadProgress(0);
+      setImgUploading(true);
+
+      try {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/band/update/${bandId}`,
+          formData,
+          {
+            signal: abortControllerRef.current.signal,
+            withCredentials: true,
+            onUploadProgress: (event) => {
+              if (event.total) {
+                const progress = (event.loaded / event.total) * 100;
+                setImgUploadProgress(progress);
+              }
+            }
+          }
+        );
+      } catch (e) {
+
+        if (!axios.isCancel(e)) {
+
+          notifications.show({
+            title: 'Fehler',
+            message: 'Beim Hochladen des Bildes ist ein Fehler aufgetreten.',
+            color: 'red'
+          })
+
+          setImgUploading(false);
+          setSubmitButtonDisabled(false);
+
+        }
+
+        return;
+      }
+    }
+
+    notifications.show({
+      title: 'Band gespeichert',
+      message: 'Die Band wurde gespeichert',
+      color: 'green'
+    });
+
+    navigate('/my-bands');
   }
 
   const changeImage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,14 +253,16 @@ export function EditBand() {
       return;
     }
 
-    setImageFile(file);
     setImageAction('replace');
+
+    const fileext = file.name.split('.').pop();
 
     const reader = new FileReader();
 
     reader.onload = () => {
       setImageUrl(reader.result as string);
       setOriginalImageUrl(reader.result as string);
+      setImageExt(fileext ? fileext : null);
     };
 
     reader.readAsDataURL(file);
@@ -183,6 +340,7 @@ export function EditBand() {
           pixelCrop.height
         );
 
+        setImageExt('png');
         resolve(canvas.toDataURL("image/png"));
       };
 
@@ -190,6 +348,31 @@ export function EditBand() {
       image.src = imageSrc;
     });
   };
+
+  const abortButtonClicked = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    navigate('/my-bands');
+  }
+
+  const deleteButtonClicked = () => {
+    openDeleteConfirmDialog();
+  }
+
+  const deleteBandConfirmed = async () => {
+    setDeleteButtonDisabled(true);
+    await deleteBand({ path: { bandId } });
+    navigate('/my-bands');
+  }
+
+  const abortUpload = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setImgUploading(false);
+    setSubmitButtonDisabled(false);
+  }
 
   return (
     <React.Fragment>
@@ -286,7 +469,7 @@ export function EditBand() {
               </React.Fragment>
             )}
           </Box>
-          <form onSubmit={bandForm.onSubmit(handleBandSubmit)}>
+          <form ref={formRef} onSubmit={bandForm.onSubmit(handleBandSubmit)}>
             <Title order={3} mb='sm'>Banddetails</Title>
             <TextInput
               mb='sm'
@@ -320,40 +503,53 @@ export function EditBand() {
         mt='lg'
         gap='md'
       >
-        <Flex
-          style={{ flexGrow: 1, height: 20 }}
-          miw={240}
-          mr='auto'
-          align='center'
-          gap='sm'
-        >
-          <Box style={{ flexGrow: 1 }}>
-            <Progress value={66} />
-          </Box>
-          <ActionIcon color='red' size='md' style={{ borderRadius: '50%' }}>
-            <XIcon size={22} />
-          </ActionIcon>
-        </Flex>
+        {imgUploading &&
+          <Flex
+            style={{ flexGrow: 1, height: 20 }}
+            miw={240}
+            mr='auto'
+            align='center'
+            gap='sm'
+          >
+            <Box style={{ flexGrow: 1 }}>
+              <Progress value={imgUploadProgress} />
+            </Box>
+            <ActionIcon
+              color='red'
+              size='md'
+              style={{ borderRadius: '50%' }}
+              onClick={abortUpload}
+            >
+              <XIcon size={22} />
+            </ActionIcon>
+          </Flex>
+        }
         <Flex wrap='wrap' gap='sm'>
           <Button
             leftSection={<XIcon size={16} />}
             color='gray.5'
+            onClick={abortButtonClicked}
           >
             Abbrechen
           </Button>
           <Button
             leftSection={<TrashIcon size={16} />}
             color='red'
+            onClick={deleteButtonClicked}
+            disabled={deleteButtonDisabled}
           >
             {bandStatus === 'draft' ? 'Verwerfen' : 'Löschen'}
           </Button>
           <Button
             leftSection={<FloppyDiskIcon size={16} />}
+            disabled={submitButtonDisabled || !formRef.current}
+            onClick={() => formRef.current?.requestSubmit()}
           >
             Speichern
           </Button>
         </Flex>
       </Flex>
+      {imgUploading && <Text size='sm'>Bild wird hochgeladen...</Text>}
       <input
         ref={imgInputRef}
         type='file'
@@ -361,6 +557,28 @@ export function EditBand() {
         onChange={changeImage}
         style={{ display: 'none' }}
       />
+      <Modal
+        opened={deleteConfirmDialogOpened}
+        onClose={closeDeleteConfirmDialog}
+        size='lg'
+      >
+        <Text>Möchtest Du die Band wirklich löschen?</Text>
+        <Flex justify='flex-end' align='center' mt='md' gap='sm'>
+          <Button
+            leftSection={<XIcon size={16} />}
+            onClick={closeDeleteConfirmDialog}
+            color='red'
+          >
+            Nein
+          </Button>
+          <Button
+            leftSection={<CheckIcon size={16} />}
+            onClick={deleteBandConfirmed}
+          >
+            Ja
+          </Button>
+        </Flex>
+      </Modal>
     </React.Fragment>
   )
 }

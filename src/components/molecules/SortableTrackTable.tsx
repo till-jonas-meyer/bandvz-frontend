@@ -237,7 +237,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
     validate: {
       title: (value) => value === '' ? 'Bitte einen Titel eingeben.' : null,
       file: (value) => value === null ? 'Bitte eine Datei auswählen.' : null,
-      compliance: isNotEmpty('Du musst die Bendingungen akzeptieren'),
+      compliance: isNotEmpty('Du musst die Bedingungen akzeptieren.'),
     }
   });
 
@@ -448,6 +448,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
             label='Datei'
             placeholder='Datei auswählen'
             key={addTrackForm.key('file')}
+            accept='audio/mpeg'
             {...addTrackForm.getInputProps('file')}
           />
           <Checkbox
@@ -510,7 +511,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
         onClose={closeDeleteConfirmDialog}
         size='lg'
       >
-        <Text>Möchten Sie die Track wirklich löschen?</Text>
+        <Text>Möchtest Du die Track wirklich löschen?</Text>
         <Flex justify='flex-end' align='center' mt='md' gap='sm'>
           <Button
             leftSection={<XIcon size={16} />}
