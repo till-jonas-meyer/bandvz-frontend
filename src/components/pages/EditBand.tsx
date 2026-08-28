@@ -223,7 +223,7 @@ export function EditBand() {
       color: 'green'
     });
 
-    navigate('/my-bands');
+    navigate('/bands/my-bands');
   }
 
   const changeImage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -304,6 +304,7 @@ export function EditBand() {
       try {
         const croppedImageUrl = await createCroppedImage(originalImageUrl, croppedAreaPixels);
         setImageUrl(croppedImageUrl);
+        setImageAction('replace');
         setEditing(false);
       } catch (e) {
         alert('Es gibt ein Problem mit Deinem Browser.');
@@ -345,6 +346,7 @@ export function EditBand() {
       };
 
       image.onerror = reject;
+      image.crossOrigin = 'anonymous';
       image.src = imageSrc;
     });
   };
@@ -353,7 +355,7 @@ export function EditBand() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    navigate('/my-bands');
+    navigate('/bands/my-bands');
   }
 
   const deleteButtonClicked = () => {
@@ -363,7 +365,7 @@ export function EditBand() {
   const deleteBandConfirmed = async () => {
     setDeleteButtonDisabled(true);
     await deleteBand({ path: { bandId } });
-    navigate('/my-bands');
+    navigate('/bands/my-bands');
   }
 
   const abortUpload = () => {

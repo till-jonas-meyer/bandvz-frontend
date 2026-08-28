@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import './App.css'
-import { login, logout, profile } from './api/generated/sdk.gen';
+import { logout, profile } from './api/generated/sdk.gen';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { setUser, unsetUser } from './features/user/userSlice';
 import { MantineProvider, createTheme } from '@mantine/core';
@@ -27,7 +27,6 @@ import {
   LockKeyIcon
 } from '@phosphor-icons/react';
 import {
-  BrowserRouter,
   Route,
   Routes,
   Link,
@@ -41,6 +40,9 @@ import { Activate } from './components/pages/Activate';
 import { ResetPassword } from './components/pages/ResetPassword';
 import { ChangePassword } from './components/pages/ChangePassword';
 import { EditBand } from './components/pages/EditBand';
+import { MyBands } from './components/pages/MyBands';
+import { BandDetails } from './components/pages/BandDetails';
+import { AudioPlayer } from './components/organisms/AudioPlayer';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -58,14 +60,7 @@ function App() {
   });
 
   useEffect(() => {
-    const loginUser = async () => {
-      const result = await login({
-        body: {
-          email: 'weaveit@gmx.net',
-          password: 'Test1234',
-        }
-      });
-    };
+
     const getUser = async () => {
       const profileResult = await profile();
       if (profileResult.status === 200 && profileResult.data) {
@@ -73,6 +68,7 @@ function App() {
       }
     };
     getUser();
+
   }, []);
 
   const logoutClicked = async () => {
@@ -151,7 +147,7 @@ function App() {
         <AppShell.Navbar pt='sm'>
           <NavLink component={Link} to='/' label='Bands' leftSection={<UsersFourIcon size={16} />} />
           {user !== null &&
-            <NavLink component={Link} to='/my-bands' label='Meine Bands' leftSection={<UsersThreeIcon size={16} />} />
+            <NavLink component={Link} to='/bands/my-bands' label='Meine Bands' leftSection={<UsersThreeIcon size={16} />} />
           }
         </AppShell.Navbar>
         <AppShell.Main>
@@ -162,9 +158,12 @@ function App() {
             <Route path='/user/reset-password' element={<ResetPassword />} />
             <Route path='/user/change-password/:resetCode' element={<ChangePassword />} />
             <Route path='/bands/edit-band/:bandId' element={<EditBand />} />
+            <Route path='/bands/my-bands' element={<MyBands />} />
+            <Route path='/bands/details/:bandId' element={<BandDetails />} />
           </Routes>
         </AppShell.Main>
       </AppShell>
+      <AudioPlayer />
     </MantineProvider>
   );
 }
