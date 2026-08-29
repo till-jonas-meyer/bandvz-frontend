@@ -3,27 +3,31 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 interface AudioState {
   url: string | null;
+  bandName: string;
+  trackTitle: string;
 }
 
 const initialState: AudioState = {
   url: null,
+  bandName: '',
+  trackTitle: '',
 };
 
 const audioSlice = createSlice({
   name: 'audio',
   initialState,
   reducers: {
-    setAudioUrl(state, action: PayloadAction<string | null>) {
-      state.url = action.payload;
+    setAudioData(state, action: PayloadAction<AudioState>) {
+      return action.payload;
     },
     closeAudioPlayer(state) {
-      state.url = null;
+      return initialState;
     },
   },
 });
 
 export const {
-  setAudioUrl,
+  setAudioData,
   closeAudioPlayer,
 } = audioSlice.actions;
 

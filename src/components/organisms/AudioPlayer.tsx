@@ -25,6 +25,15 @@ export function AudioPlayer() {
     (state: RootState) => state.audio.url
   );
 
+  const bandName = useSelector(
+    (state: RootState) => state.audio.bandName
+  );
+
+  const trackTitle = useSelector(
+    (state: RootState) => state.audio.trackTitle
+  );
+
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [currentTime, setCurrentTime] = useState(0);
@@ -172,12 +181,13 @@ export function AudioPlayer() {
         onPause={handlePause}
         onEnded={handleEnded}
       />
-
+      <Box ta='center' my='sm'>{bandName} - {trackTitle}</Box>
       <Group
         wrap="nowrap"
         gap="md"
         maw={1200}
         mx="auto"
+        mb='sm'
       >
         {/* Play / Pause */}
         <Tooltip

@@ -9,15 +9,18 @@ import {
   PlayIcon
 } from '@phosphor-icons/react';
 import { useAppDispatch } from '../../app/hooks';
-import { setAudioUrl } from '../../features/audio/audioSlice';
+import { setAudioData } from '../../features/audio/audioSlice';
+import type { GetBandResponses } from '../../api/generated';
+
+type Band = GetBandResponses[200];
 
 type TrackTableProps = {
-  bandId: number;
+  band: Band | null;
 };
 
 type TrackList = GetTracksForBandResponses[200];
 
-export function TrackTable({ bandId }: TrackTableProps) {
+export function TrackTable({ band }: TrackTableProps) {
 
   const dispatch = useAppDispatch();
 
@@ -25,6 +28,7 @@ export function TrackTable({ bandId }: TrackTableProps) {
   const [hoveredTrackUuid, setHoveredTrackUuid] = useState<string | null>(null);
 
   useEffect(() => {
+
     const loadTracks = async (bandId: number) => {
 
       const getTracksResult = await getTracksForBand({ path: { bandId } });
@@ -40,11 +44,20 @@ export function TrackTable({ bandId }: TrackTableProps) {
       setTrackList(getTracksResult.data);
     }
 
-    loadTracks(bandId);
-  }, []);
+    if (band !== null) {
+      loadTracks(band.id);
+    }
 
-  const playTrack = (trackUuid: string) => {
-    dispatch(setAudioUrl(`${import.meta.env.VITE_API_URL}/storage/tracks/${trackUuid}.mp3`));
+  }, [band]);
+
+  const playTrack = (trackUuid: string, trackTitle: string) => {
+
+    dispatch(setAudioData({
+      url: `${import.meta.env.VITE_API_URL}/storage/tracks/${trackUuid}.mp3`,
+      bandName: band ? band.name : '',
+      trackTitle
+    }));
+
   }
 
   return (
@@ -63,7 +76,7 @@ export function TrackTable({ bandId }: TrackTableProps) {
             onMouseEnter={() => setHoveredTrackUuid(track.uuid)}
             onMouseLeave={() => setHoveredTrackUuid(null)}
             bg={hoveredTrackUuid === track.uuid ? 'gray.1' : ''}
-            onClick={() => playTrack(track.uuid)}
+            onClick={() => playTrack(track.uuid, track.title)}
           >
             <Table.Td>{track.title}</Table.Td>
             <Table.Td

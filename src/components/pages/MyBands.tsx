@@ -19,6 +19,7 @@ import {
   Pill,
   Modal,
   Text,
+  Alert
 } from '@mantine/core';
 import {
   DotsThreeIcon,
@@ -40,6 +41,7 @@ export function MyBands() {
   const [loading, setLoading] = useState(false);
   const [addBandButtonDisabled, setAddBandButtonDisabled] = useState(false);
   const [bandIdToDelete, setBandIdToDelete] = useState<number | null>(null);
+  const [errorAddBand, setErrorAddBand] = useState('');
 
   useEffect(() => {
 
@@ -90,6 +92,7 @@ export function MyBands() {
       }
     }).then(() => {
       setLoading(false);
+      setErrorAddBand('');
     });
 
     if (!bandList) {
@@ -105,6 +108,11 @@ export function MyBands() {
   }
 
   const createNewBand = async () => {
+
+    if (bandList && bandList.length >= Number(import.meta.env.VITE_MAX_NUM_BANDS_PER_USER)) {
+      setErrorAddBand('Du hast die maximale Anzahl an Bands erreicht.');
+      return;
+    }
 
     setLoading(true);
     setAddBandButtonDisabled(true);
@@ -179,6 +187,11 @@ export function MyBands() {
             ))}
           </Table.Tbody>
         </Table>
+        {errorAddBand !== '' &&
+          <Alert variant='light' color='red' title='Maximale Anzahl erreicht' mb='sm'>
+            {errorAddBand}
+          </Alert>
+        }
         <Flex align='center' justify='flex-end' gap='sm'>
           {loading && <Loader size={16} mr='auto' />}
           <Button

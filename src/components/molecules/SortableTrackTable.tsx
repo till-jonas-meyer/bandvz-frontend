@@ -13,7 +13,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Table } from '@mantine/core';
 import {
-  Box,
   Button,
   Modal,
   TextInput,
@@ -26,6 +25,7 @@ import {
   ActionIcon,
   Text,
   Checkbox,
+  Alert,
 } from '@mantine/core';
 import { useForm, isNotEmpty } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -138,6 +138,8 @@ function SortableRow({ item, deleteTrack, editTrack }: SortableRowProps) {
 }
 
 export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
+
+  const [errorAddTrack, setErrorAddTrack] = useState('');
 
   const [editTrackUuid, setEditTrackUuid] = useState<string | null>(null);
 
@@ -363,6 +365,12 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
   }
 
   const initAddTrackModal = () => {
+
+    if (items.length >= Number(import.meta.env.VITE_MAX_NUM_TRACKS_PER_BAND)) {
+      setErrorAddTrack('Du hast die maximale Anzahl an Tracks pro Band erreicht.');
+      return;
+    }
+
     addTrackForm.reset();
     setTrackUploadProgress(0);
     setUploadingTrack(false);
@@ -371,6 +379,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
   };
 
   const deleteTrack = (uuid: string) => {
+    setErrorAddTrack('');
     setTrackUuidToDelete(uuid);
     openDeleteConfirmDialog();
   };
@@ -420,6 +429,11 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
           </Table.Tbody>
         </Table>
       </DndContext>
+      {errorAddTrack !== '' &&
+        <Alert variant='light' color='red' title='Maximale Anzahl erreicht' mb='sm'>
+          {errorAddTrack}
+        </Alert>
+      }
       <Flex justify='flex-end' align='center' gap='sm' mt='sm'>
         {reordering && <Loader size={16} mr='auto' />}
         <Button
