@@ -478,6 +478,7 @@ export function EditBand() {
               label='Name der Band'
               placeholder='Name der Band eingeben'
               key={bandForm.key('name')}
+              maxLength={import.meta.env.VITE_MAX_LENGTH_BAND_NAME}
               {...bandForm.getInputProps('name')}
             />
             <Textarea
@@ -486,6 +487,7 @@ export function EditBand() {
               autosize
               minRows={3}
               key={bandForm.key('description')}
+              maxLength={import.meta.env.VITE_MAX_LENGTH_BAND_DESCRIPTION}
               {...bandForm.getInputProps('description')}
             />
           </form>

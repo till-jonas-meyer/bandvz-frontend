@@ -455,6 +455,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
             label='Titel'
             placeholder='Titel für Track eingeben'
             key={addTrackForm.key('title')}
+            maxLength={import.meta.env.VITE_MAX_LENGTH_TRACK_TITLE}
             {...addTrackForm.getInputProps('title')}
           />
           <FileInput
@@ -500,6 +501,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
             label='Titel'
             placeholder='Titel für Track eingeben'
             key={editTrackForm.key('title')}
+            maxLength={import.meta.env.VITE_MAX_LENGTH_TRACK_TITLE}
             {...editTrackForm.getInputProps('title')}
           />
           <Flex direction='row' align='center' justify='flex-end' mt='xl'>

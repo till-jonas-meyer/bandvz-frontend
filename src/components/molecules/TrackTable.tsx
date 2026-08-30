@@ -50,10 +50,10 @@ export function TrackTable({ band }: TrackTableProps) {
 
   }, [band]);
 
-  const playTrack = (trackUuid: string, trackTitle: string) => {
+  const playTrack = (trackUuid: string, trackTitle: string, fileExt: string) => {
 
     dispatch(setAudioData({
-      url: `${import.meta.env.VITE_API_URL}/storage/tracks/${trackUuid}.mp3`,
+      url: `${import.meta.env.VITE_API_URL}/storage/tracks/${trackUuid}.${fileExt}`,
       bandName: band ? band.name : '',
       trackTitle
     }));
@@ -76,7 +76,7 @@ export function TrackTable({ band }: TrackTableProps) {
             onMouseEnter={() => setHoveredTrackUuid(track.uuid)}
             onMouseLeave={() => setHoveredTrackUuid(null)}
             bg={hoveredTrackUuid === track.uuid ? 'gray.1' : ''}
-            onClick={() => playTrack(track.uuid, track.title)}
+            onClick={() => playTrack(track.uuid, track.title, track.fileExt)}
           >
             <Table.Td>{track.title}</Table.Td>
             <Table.Td

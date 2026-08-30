@@ -1,13 +1,28 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TrackTable } from '../molecules/TrackTable';
 import type { GetBandResponses } from '../../api/generated';
 import { getBand } from '../../api/generated';
 import { notifications } from '@mantine/notifications';
+import {
+  Title,
+  Grid,
+  Flex,
+  ActionIcon,
+  Box,
+  Image,
+  Skeleton,
+  useMantineTheme,
+} from '@mantine/core';
+import {
+  CaretLeftIcon
+} from '@phosphor-icons/react'
 
 type Band = GetBandResponses[200];
 
 export function BandDetails() {
+
+  const theme = useMantineTheme();
 
   const { bandId } = useParams();
 
@@ -38,9 +53,107 @@ export function BandDetails() {
   }, []);
 
 
+  if (!band) {
+    return (
+      <React.Fragment>
+        <Flex
+          justify='flex-start'
+          align='center'
+          direction='row'
+          gap='sm'
+          mb='xl'
+          mt='sm'
+        >
+          <Skeleton height={24} circle />
+          <Skeleton width={200} height={24} />
+        </Flex>
+        <Grid gap='xl' maw={960}>
+          <Grid.Col
+            span={{ base: 12, md: 5 }}
+          >
+            <Skeleton width='100%' height={420} mb='lg' />
+            <Skeleton width='100%' height={200} />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 7 }}>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
+            <React.Fragment>
+              <Skeleton height={8} radius="xl" />
+              <Skeleton height={8} mt={6} radius="xl" />
+              <Skeleton height={8} mt={6} mb='sm' width="70%" radius="xl" />
+            </React.Fragment>
 
+          </Grid.Col>
+        </Grid>
+      </React.Fragment >
+    );
+  }
 
   return (
-    <TrackTable band={band} />
+    <React.Fragment>
+      <Flex
+        justify='flex-start'
+        align='center'
+        direction='row'
+        gap='sm'
+        mb='xl'
+        mt='sm'
+      >
+        <ActionIcon
+          variant='transparent'
+          color='black'
+        >
+          <CaretLeftIcon size={24} />
+        </ActionIcon>
+        <Title order={2}>{band.name}</Title>
+      </Flex>
+      <Grid gap='xl' maw={960}>
+        <Grid.Col
+          span={{ base: 12, md: 5 }}
+        >
+          <Image
+            src={`${import.meta.env.VITE_API_URL}/storage/bandimgs/${band.imgUuid}.${band?.imgExt}`}
+            w='100%'
+            style={{ aspectRatio: '1 / 1', objectFit: 'cover', maxWidth: 420 }}
+            mb='lg'
+          />
+          <TrackTable band={band} />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 7 }}>
+          <pre style={{
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+            margin: 0,
+            fontFamily: theme.fontFamily,
+            fontSize: theme.fontSizes['md']
+          }}>
+            {band.description}
+          </pre>
+        </Grid.Col>
+      </Grid>
+    </React.Fragment >
   )
 }
