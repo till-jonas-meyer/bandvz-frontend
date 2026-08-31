@@ -5,8 +5,6 @@ import {
   Box,
   Button,
   Flex,
-  Space,
-  FileInput,
   TextInput,
   Textarea,
   ActionIcon,
@@ -26,7 +24,7 @@ import {
   XIcon,
   MinusIcon,
   FloppyDiskIcon,
-  XCircleIcon,
+  UsersThreeIcon
 } from '@phosphor-icons/react';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
@@ -420,7 +418,7 @@ export function EditBand() {
                   <img src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                 ) : (
                   <Flex w='100%' h='100%' align='center' justify='center'>
-                    <ImageIcon size={200} color='#999' />
+                    <UsersThreeIcon size={200} color='#999' />
                   </Flex>
                 )}
               </React.Fragment>

@@ -60,6 +60,10 @@ export function TrackTable({ band }: TrackTableProps) {
 
   }
 
+  if (!trackList || !trackList.length) {
+    return null;
+  }
+
   return (
     <Table>
       <Table.Thead>

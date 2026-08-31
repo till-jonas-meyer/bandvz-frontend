@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { TrackTable } from '../molecules/TrackTable';
 import type { GetBandResponses } from '../../api/generated';
 import { getBand } from '../../api/generated';
@@ -9,18 +9,27 @@ import {
   Grid,
   Flex,
   ActionIcon,
-  Box,
   Image,
   Skeleton,
   useMantineTheme,
 } from '@mantine/core';
 import {
-  CaretLeftIcon
-} from '@phosphor-icons/react'
+  CaretLeftIcon,
+  PencilIcon,
+  ImageIcon,
+  UsersThreeIcon
+} from '@phosphor-icons/react';
+import { useAppSelector } from '../../app/hooks';
 
 type Band = GetBandResponses[200];
 
 export function BandDetails() {
+
+  const user = useAppSelector((state) => {
+    return state.user;
+  });
+
+  const navigate = useNavigate();
 
   const theme = useMantineTheme();
 
@@ -125,21 +134,44 @@ export function BandDetails() {
         <ActionIcon
           variant='transparent'
           color='black'
+          onClick={() => navigate(-1)}
         >
           <CaretLeftIcon size={24} />
         </ActionIcon>
         <Title order={2}>{band.name}</Title>
+        {band.userId === user?.userId &&
+          <ActionIcon
+            variant='transparent'
+            color='gray.8'
+            onClick={() => navigate(`/bands/edit-band/${band.id}`)}
+          >
+            <PencilIcon size={24} />
+          </ActionIcon>
+        }
       </Flex>
       <Grid gap='xl' maw={960}>
         <Grid.Col
           span={{ base: 12, md: 5 }}
         >
-          <Image
-            src={`${import.meta.env.VITE_API_URL}/storage/bandimgs/${band.imgUuid}.${band?.imgExt}`}
-            w='100%'
-            style={{ aspectRatio: '1 / 1', objectFit: 'cover', maxWidth: 420 }}
-            mb='lg'
-          />
+          {band.imgUuid ? (
+            <Image
+              src={`${import.meta.env.VITE_API_URL}/storage/bandimgs/${band.imgUuid}.${band?.imgExt}`}
+              w='100%'
+              style={{ aspectRatio: '1 / 1', objectFit: 'cover', maxWidth: 420 }}
+              mb='lg'
+            />
+          ) : (
+            <Flex
+              w='100%'
+              style={{ aspectRatio: '1 / 1' }}
+              mb='lg'
+              justify='center'
+              align='center'
+              bg='#ddd'
+            >
+              <UsersThreeIcon size={160} color='#fff' />
+            </Flex>
+          )}
           <TrackTable band={band} />
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 7 }}>

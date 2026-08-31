@@ -82,7 +82,7 @@ export function Login() {
 
     if (loginResult.status === 200) {
       dispatch(setUser(loginResult.data!));
-      navigate('/my-bands');
+      navigate('/bands/my-bands');
       notifications.show({
         title: 'Eingeloggt',
         message: 'Du wurdest eingeloggt.',

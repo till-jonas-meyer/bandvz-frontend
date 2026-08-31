@@ -42,6 +42,7 @@ import { ChangePassword } from './components/pages/ChangePassword';
 import { EditBand } from './components/pages/EditBand';
 import { MyBands } from './components/pages/MyBands';
 import { BandDetails } from './components/pages/BandDetails';
+import { AllBands } from './components/pages/AllBands';
 import { AudioPlayer } from './components/organisms/AudioPlayer';
 
 const theme = createTheme({
@@ -152,6 +153,7 @@ function App() {
         </AppShell.Navbar>
         <AppShell.Main>
           <Routes>
+            <Route path='/' element={<AllBands />} />
             <Route path='/user/login' element={<Login />} />
             <Route path='/user/register' element={<Register />} />
             <Route path='/user/activate/:activationCode' element={<Activate />} />
