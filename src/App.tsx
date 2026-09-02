@@ -24,7 +24,8 @@ import {
   UserPlusIcon,
   UsersFourIcon,
   UsersThreeIcon,
-  LockKeyIcon
+  LockKeyIcon,
+  LockIcon
 } from '@phosphor-icons/react';
 import {
   Route,
@@ -44,6 +45,7 @@ import { MyBands } from './components/pages/MyBands';
 import { BandDetails } from './components/pages/BandDetails';
 import { AllBands } from './components/pages/AllBands';
 import { AudioPlayer } from './components/organisms/AudioPlayer';
+import { Privacy } from './components/pages/Privacy';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -150,6 +152,7 @@ function App() {
           {user !== null &&
             <NavLink component={Link} to='/bands/my-bands' label='Meine Bands' leftSection={<UsersThreeIcon size={16} />} />
           }
+          <NavLink component={Link} to='/privacy' label='Datenschutz & Impressum' leftSection={<LockIcon size={16} />} />
         </AppShell.Navbar>
         <AppShell.Main>
           <Routes>
@@ -162,6 +165,7 @@ function App() {
             <Route path='/bands/edit-band/:bandId' element={<EditBand />} />
             <Route path='/bands/my-bands' element={<MyBands />} />
             <Route path='/bands/details/:bandId' element={<BandDetails />} />
+            <Route path='/privacy' element={<Privacy />} />
           </Routes>
         </AppShell.Main>
       </AppShell>
