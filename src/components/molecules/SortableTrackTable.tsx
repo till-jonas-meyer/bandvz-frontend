@@ -61,6 +61,7 @@ type SortableTrackTableProps = {
 type Item = {
   uuid: string;
   title: string;
+  fileExt: string;
 };
 
 type SortableRowProps = {
@@ -182,6 +183,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
         return {
           title: event.title,
           uuid: item.uuid,
+          fileExt: item.fileExt
         }
       }
       return item;
@@ -290,6 +292,7 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
       newItems.push({
         uuid: uploadResult.data.uuid,
         title: event.title,
+        fileExt: uploadResult.data.fileExt
       });
 
       setItems(newItems);
