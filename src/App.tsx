@@ -148,11 +148,11 @@ function App() {
           </Flex>
         </AppShell.Header>
         <AppShell.Navbar pt='sm'>
-          <NavLink component={Link} to='/' label='Bands' leftSection={<UsersFourIcon size={16} />} />
+          <NavLink component={Link} to='/' label='Bands' leftSection={<UsersFourIcon size={16} />} onClick={toggle} />
           {user !== null &&
-            <NavLink component={Link} to='/bands/my-bands' label='Meine Bands' leftSection={<UsersThreeIcon size={16} />} />
+            <NavLink component={Link} to='/bands/my-bands' label='Meine Bands' leftSection={<UsersThreeIcon size={16} />} onClick={toggle} />
           }
-          <NavLink component={Link} to='/privacy' label='Datenschutz & Impressum' leftSection={<LockIcon size={16} />} />
+          <NavLink component={Link} to='/privacy' label='Datenschutz & Impressum' leftSection={<LockIcon size={16} />} onClick={toggle} />
         </AppShell.Navbar>
         <AppShell.Main>
           <Routes>
