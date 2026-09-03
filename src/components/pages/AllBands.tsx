@@ -66,8 +66,6 @@ export function AllBands() {
 
   const loadBands = async (searchTerm: string) => {
 
-    setLoading(true);
-
     const getBandsResult = await getBands({
       body: {
         pageSize: Number(import.meta.env.VITE_BANDS_PAGE_SIZE),
@@ -85,13 +83,10 @@ export function AllBands() {
     }
 
     setBands(getBandsResult.data);
-    setLoading(false);
 
   }
 
   const loadRandomBands = async () => {
-
-    setLoading(true);
 
     const getRandomBandsResult = await getRandomBands({
       body: {
@@ -109,8 +104,6 @@ export function AllBands() {
     }
 
     setBands(getRandomBandsResult.data);
-
-    setLoading(false);
 
   }
 
