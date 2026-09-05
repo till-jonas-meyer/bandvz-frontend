@@ -12,7 +12,8 @@ import {
   Title,
   Grid,
   Pill,
-  Progress
+  Progress,
+  Alert,
 } from '@mantine/core';
 import {
   PlusIcon,
@@ -110,6 +111,8 @@ export function EditBand() {
 
   const [imgUploading, setImgUploading] = useState(false);
   const [imgUploadProgress, setImgUploadProgress] = useState(0);
+
+  const [imgTooBigError, setImgTooBigError] = useState(false);
 
   const [deleteConfirmDialogOpened, {
     open: openDeleteConfirmDialog,
@@ -225,8 +228,16 @@ export function EditBand() {
   }
 
   const changeImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+
     const file = event.target.files?.[0];
+
+    setImgTooBigError(false);
+
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setImgTooBigError(true);
+        return;
+      }
       handleImageSelect(file);
     }
   }
@@ -278,6 +289,7 @@ export function EditBand() {
   }
 
   const deleteIconClicked = () => {
+    setImgTooBigError(false);
     setImageUrl(null);
     setOriginalImageUrl(null);
     setImageAction('delete');
@@ -469,6 +481,15 @@ export function EditBand() {
               </React.Fragment>
             )}
           </Box>
+          {imgTooBigError &&
+            <Alert
+              w={{ base: 200, lg: 300 }}
+              color='red'
+              mb='md'
+            >
+              Das ausgewählte Bild ist zu groß (max. 10MB).
+            </Alert>
+          }
           <form ref={formRef} onSubmit={bandForm.onSubmit(handleBandSubmit)}>
             <Title order={3} mb='sm'>Banddetails</Title>
             <TextInput

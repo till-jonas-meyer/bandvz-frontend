@@ -240,7 +240,14 @@ export function SortableTrackTable({ bandId }: SortableTrackTableProps) {
     },
     validate: {
       title: (value) => value === '' ? 'Bitte einen Titel eingeben.' : null,
-      file: (value) => value === null ? 'Bitte eine Datei auswählen.' : null,
+      file: (file: File | null) => {
+        if (file === null) {
+          return 'Bitte eine Datei auswählen.';
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          return 'Die Audiodatei ist zu groß. Es sind max. 10 MB erlaubt.'
+        }
+      },
       compliance: isNotEmpty('Du musst die Bedingungen akzeptieren.'),
     }
   });

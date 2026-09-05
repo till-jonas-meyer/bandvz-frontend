@@ -46,6 +46,7 @@ import { BandDetails } from './components/pages/BandDetails';
 import { AllBands } from './components/pages/AllBands';
 import { AudioPlayer } from './components/organisms/AudioPlayer';
 import { Privacy } from './components/pages/Privacy';
+import { Profile } from './components/pages/Profile';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -162,6 +163,7 @@ function App() {
             <Route path='/user/activate/:activationCode' element={<Activate />} />
             <Route path='/user/reset-password' element={<ResetPassword />} />
             <Route path='/user/change-password/:resetCode' element={<ChangePassword />} />
+            <Route path='/user/profile' element={<Profile />} />
             <Route path='/bands/edit-band/:bandId' element={<EditBand />} />
             <Route path='/bands/my-bands' element={<MyBands />} />
             <Route path='/bands/details/:bandId' element={<BandDetails />} />
