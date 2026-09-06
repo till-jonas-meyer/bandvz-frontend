@@ -127,8 +127,8 @@ export function AllBands() {
     loadBands(searchTerm);
   }
 
-  const getImgUrl = (imgUuid: string, imgExt: string) => {
-    return `${import.meta.env.VITE_API_URL}/storage/bandimgs/${imgUuid}.${imgExt}`;
+  const getThumbnailUrl = (imgUuid: string) => {
+    return `${import.meta.env.VITE_API_URL}/storage/bandimgs/${imgUuid}-thumbnail.webp`;
   };
 
   const cellClicked = (bandId: number) => {
@@ -204,7 +204,7 @@ export function AllBands() {
                 >
                   {band.imgUuid ? (
                     <Image
-                      src={getImgUrl(band.imgUuid, band.imgExt!)}
+                      src={getThumbnailUrl(band.imgUuid)}
                       h='100%'
                       w='100%'
                     />
@@ -236,7 +236,7 @@ export function AllBands() {
                   bottom={8}
                   left={8}
                 >
-                  {band.tracks && band.tracks.length &&
+                  {band.tracks && band.tracks.length > 0 &&
                     <ActionIcon
                       color='blue'
                       style={{ borderRadius: '50%' }}
